@@ -415,6 +415,6 @@ app.get("/dashboard/envios", async (req, res) => {
 /* ============================================
     START SERVER
 ============================================ */
-app.listen(3000, () =>
+app.listen(process.env.PORT || 3000, () =>
     console.log("🔥 BenJudge backend rodando em http://localhost:3000")
 );
