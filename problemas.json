@@ -1,0 +1,274 @@
+[
+  {
+    "id": 1,
+    "titulo": "Contar pares com Divide and Conquer",
+    "categoria": ["dc"],
+    "dificuldade": "easy",
+    "descricao": "Dado um vetor de inteiros, use a estratégia de Divisão e Conquista para contar quantos elementos são pares. A solução deve dividir o vetor em partes menores, resolver cada parte recursivamente e combinar os resultados.",
+    "exemplo_entrada": [1,2,3,4],
+    "exemplo_saida": 2
+  },
+  {
+    "id": 2,
+    "titulo": "Encontrar o máximo",
+    "categoria": ["dc"],
+    "dificuldade": "easy",
+    "descricao": "Dados N números em um vetor, utilize Divisão e Conquista para determinar o maior elemento. Sua função deve dividir o vetor, encontrar o máximo de cada metade e combinar tomando o maior entre os dois.",
+    "exemplo_entrada": [3,1,8,2,7],
+    "exemplo_saida": 8
+  },
+  {
+    "id": 3,
+    "titulo": "Recordes à esquerda",
+    "categoria": ["dc"],
+    "dificuldade": "medium",
+    "descricao": "Um elemento é considerado 'recorde' se ele é maior que todos os elementos à sua esquerda. Usando Divisão e Conquista, retorne quantos elementos do vetor satisfazem essa propriedade.",
+    "exemplo_entrada": [3,1,4,2,8,5],
+    "exemplo_saida": 3
+  },
+  {
+    "id": 4,
+    "titulo": "Soma total por D&C",
+    "categoria": ["dc"],
+    "dificuldade": "easy",
+    "descricao": "Usando Divisão e Conquista, calcule a soma de todos os elementos de um vetor. Divida o vetor em dois, some cada metade recursivamente e combine somando os resultados.",
+    "exemplo_entrada": [2,3,5],
+    "exemplo_saida": 10
+  },
+  {
+    "id": 5,
+    "titulo": "Contar negativos com D&C",
+    "categoria": ["dc"],
+    "dificuldade": "easy",
+    "descricao": "Conte quantos valores negativos existem em um vetor de inteiros usando Divisão e Conquista. Resolva cada metade e some o total de negativos.",
+    "exemplo_entrada": [-1,4,-3,2],
+    "exemplo_saida": 2
+  },
+  {
+    "id": 6,
+    "titulo": "Merge Sort — contar inversões",
+    "categoria": ["dc"],
+    "dificuldade": "hard",
+    "descricao": "Uma inversão ocorre quando um elemento maior aparece antes de um elemento menor. Usando uma modificação do merge sort (Divisão e Conquista), conte o número total de inversões no vetor.",
+    "exemplo_entrada": [2,4,1,3,5],
+    "exemplo_saida": 3
+  },
+  {
+    "id": 7,
+    "titulo": "Busca binária recursiva",
+    "categoria": ["dc"],
+    "dificuldade": "easy",
+    "descricao": "Implemente a busca binária utilizando Divisão e Conquista. Dado um vetor ordenado e um valor-alvo, retorne o índice onde ele se encontra ou -1 caso não exista.",
+    "exemplo_entrada": {"vetor":[1,2,4,5,8], "alvo":5},
+    "exemplo_saida": 3
+  },
+  {
+    "id": 8,
+    "titulo": "Maior subarray (Kadane DC)",
+    "categoria": ["dc"],
+    "dificuldade": "hard",
+    "descricao": "Calcule a maior soma de um subarray contínuo utilizando a abordagem de Divisão e Conquista. Considere a maior soma à esquerda, à direita e a soma cruzando o meio.",
+    "exemplo_entrada": [-2,1,-3,4,-1,2,1,-5,4],
+    "exemplo_saida": 6
+  },
+  {
+    "id": 9,
+    "titulo": "Potência rápida (Divide and Conquer)",
+    "categoria": ["dc"],
+    "dificuldade": "medium",
+    "descricao": "Calcule base^expoente usando exponenciação rápida via Divisão e Conquista. Aproveite a relação: se expoente é par, a^b = (a^(b/2))²; se ímpar, multiplique por a.",
+    "exemplo_entrada": {"base":2,"exp":10},
+    "exemplo_saida": 1024
+  },
+  {
+    "id": 10,
+    "titulo": "Encontrar mínimo e máximo ao mesmo tempo",
+    "categoria": ["dc"],
+    "dificuldade": "medium",
+    "descricao": "Encontre simultaneamente o menor e o maior valor do vetor usando Divisão e Conquista. Cada metade retorna (min, max) e a combinação escolhe os menores e maiores.",
+    "exemplo_entrada": [3,8,1,7,2],
+    "exemplo_saida": {"min":1,"max":8}
+  },
+
+  {
+    "id": 11,
+    "titulo": "Agendamento de tarefas",
+    "categoria": ["gulosos"],
+    "dificuldade": "easy",
+    "descricao": "Dado um conjunto de tarefas com tempos de início e término, selecione o máximo de tarefas não sobrepostas usando a estratégia gulosa de sempre escolher a tarefa que termina primeiro.",
+    "exemplo_entrada": [[1,4],[3,5],[0,6],[5,7]],
+    "exemplo_saida": 2
+  },
+  {
+    "id": 12,
+    "titulo": "Troco mínimo",
+    "categoria": ["gulosos"],
+    "dificuldade": "easy",
+    "descricao": "Dado um valor e um conjunto de moedas, use um algoritmo guloso para devolver o troco com o menor número de moedas. Considere que o sistema é canônico, permitindo solução gulosa correta.",
+    "exemplo_entrada": {"valor":63,"moedas":[1,5,10,25]},
+    "exemplo_saida": 5
+  },
+  {
+    "id": 13,
+    "titulo": "Mochila fracionária",
+    "categoria": ["gulosos"],
+    "dificuldade": "medium",
+    "descricao": "Na versão fracionária da mochila, escolha itens com maior razão valor/peso primeiro, podendo pegar frações. Calcule o valor máximo possível.",
+    "exemplo_entrada": {"capacidade":50,"itens":[{"p":10,"v":60},{"p":20,"v":100},{"p":30,"v":120}]},
+    "exemplo_saida": 240
+  },
+  {
+    "id": 14,
+    "titulo": "Seleção de intervalos disjuntos",
+    "categoria": ["gulosos"],
+    "dificuldade": "easy",
+    "descricao": "Escolha a maior quantidade de intervalos que não se sobrepõem, sempre selecionando primeiro o intervalo que termina mais cedo.",
+    "exemplo_entrada": [[1,2],[2,4],[3,5],[0,6]],
+    "exemplo_saida": 2
+  },
+  {
+    "id": 15,
+    "titulo": "Menor conjunto de pontos",
+    "categoria": ["gulosos"],
+    "dificuldade": "medium",
+    "descricao": "Dado um conjunto de intervalos, encontre o menor número de pontos que cobrem todos eles. A estratégia gulosa deve sempre escolher o ponto ao final do menor intervalo restante.",
+    "exemplo_entrada": [[1,3],[2,5],[3,6]],
+    "exemplo_saida": 1
+  },
+  {
+    "id": 16,
+    "titulo": "Caminhão de entregas (guloso)",
+    "categoria": ["gulosos"],
+    "dificuldade": "easy",
+    "descricao": "Um caminhão deve entregar pacotes começando pelos mais próximos para minimizar combustível. Ordene os pacotes pelo valor da distância em ordem crescente.",
+    "exemplo_entrada": [10,3,7,1],
+    "exemplo_saida": [1,3,7,10]
+  },
+  {
+    "id": 17,
+    "titulo": "Emparelhamento guloso",
+    "categoria": ["gulosos"],
+    "dificuldade": "medium",
+    "descricao": "Dado um conjunto de valores, emparelhe-os de modo que a soma das diferenças entre elementos emparelhados seja minimizada, usando ordenação e emparelhamento adjacente.",
+    "exemplo_entrada": [1,5,3,8,12],
+    "exemplo_saida": 3
+  },
+  {
+    "id": 18,
+    "titulo": "Reduzir número a zero",
+    "categoria": ["gulosos"],
+    "dificuldade": "easy",
+    "descricao": "Dado um número N, reduza-o a zero aplicando sempre a maior operação possível: se for par divida por 2; se for ímpar subtraia 1. Conte o número de operações.",
+    "exemplo_entrada": 10,
+    "exemplo_saida": 4
+  },
+  {
+    "id": 19,
+    "titulo": "Construção de estrada mínima",
+    "categoria": ["gulosos"],
+    "dificuldade": "medium",
+    "descricao": "Em uma lista de custos, sempre construa primeiro a estrada de menor custo. Retorne o menor custo encontrado.",
+    "exemplo_entrada": [5,1,3,2,6],
+    "exemplo_saida": 1
+  },
+  {
+    "id": 20,
+    "titulo": "Atribuição gulosa",
+    "categoria": ["gulosos"],
+    "dificuldade": "hard",
+    "descricao": "Dado um quadro de custos (matriz), atribua cada tarefa a um trabalhador escolhendo sempre o menor custo disponível na linha atual. Retorne o custo total.",
+    "exemplo_entrada": [[3,2,7],[4,1,5],[2,3,4]],
+    "exemplo_saida": 8
+  },
+
+  {
+    "id": 21,
+    "titulo": "Fibonacci (DP)",
+    "categoria": ["dy"],
+    "dificuldade": "easy",
+    "descricao": "Calcule o n-ésimo número de Fibonacci utilizando programação dinâmica, seja por memoização ou por construção de uma tabela.",
+    "exemplo_entrada": 7,
+    "exemplo_saida": 13
+  },
+  {
+    "id": 22,
+    "titulo": "Subir escadas (DP)",
+    "categoria": ["dy"],
+    "dificuldade": "easy",
+    "descricao": "Um usuário pode subir 1 ou 2 degraus por vez. Determine quantas maneiras existem de chegar ao topo usando uma abordagem de DP semelhante ao Fibonacci.",
+    "exemplo_entrada": 4,
+    "exemplo_saida": 5
+  },
+  {
+    "id": 23,
+    "titulo": "Subset Sum",
+    "categoria": ["dy"],
+    "dificuldade": "medium",
+    "descricao": "Dado um vetor de inteiros e um alvo, determine usando DP se existe um subconjunto cuja soma é exatamente igual ao alvo.",
+    "exemplo_entrada": {"nums":[3,4,5], "target": 9},
+    "exemplo_saida": true
+  },
+  {
+    "id": 24,
+    "titulo": "Knapsack 0/1",
+    "categoria": ["dy"],
+    "dificuldade": "medium",
+    "descricao": "Dado um limite de peso e uma lista de itens com valores e pesos, determine o maior valor possível usando a mochila 0/1 com DP.",
+    "exemplo_entrada": {"capacidade":7,"itens":[{"p":1,"v":1},{"p":3,"v":4},{"p":4,"v":5}]},
+    "exemplo_saida": 9
+  },
+  {
+    "id": 25,
+    "titulo": "Maior subsequência crescente (LIS)",
+    "categoria": ["dy"],
+    "dificuldade": "hard",
+    "descricao": "Calcule o tamanho da maior subsequência estritamente crescente de um vetor, usando a abordagem clássica de DP O(n²).",
+    "exemplo_entrada": [10,9,2,5,3,7,101,18],
+    "exemplo_saida": 4
+  },
+  {
+    "id": 26,
+    "titulo": "Partição igual (DP)",
+    "categoria": ["dy"],
+    "dificuldade": "medium",
+    "descricao": "Verifique, usando programação dinâmica, se um vetor pode ser particionado em duas partes cuja soma total seja igual.",
+    "exemplo_entrada": [1,5,11,5],
+    "exemplo_saida": true
+  },
+  {
+    "id": 27,
+    "titulo": "Quantidade mínima de moedas",
+    "categoria": ["dy"],
+    "dificuldade": "medium",
+    "descricao": "Ao contrário da versão gulosa, use programação dinâmica para calcular o menor número possível de moedas necessárias para formar determinado valor.",
+    "exemplo_entrada": {"valor":11, "moedas":[1,2,5]},
+    "exemplo_saida": 3
+  },
+  {
+    "id": 28,
+    "titulo": "Longest Common Subsequence (LCS)",
+    "categoria": ["dy"],
+    "dificuldade": "hard",
+    "descricao": "Dadas duas strings, determine o tamanho da maior subsequência comum entre elas, usando DP clássico com tabela bidimensional.",
+    "exemplo_entrada": {"a":"abcde", "b":"ace"},
+    "exemplo_saida": 3
+  },
+  {
+    "id": 29,
+    "titulo": "Edit Distance (DP)",
+    "categoria": ["dy"],
+    "dificuldade": "hard",
+    "descricao": "Calcule a distância de edição entre duas strings, isto é, o número mínimo de operações (inserir, remover, substituir) para transformar uma string na outra.",
+    "exemplo_entrada": {"a":"horse", "b":"ros"},
+    "exemplo_saida": 3
+  },
+  {
+    "id": 30,
+    "titulo": "Cortar hastes (rod cutting)",
+    "categoria": ["dy"],
+    "dificuldade": "medium",
+    "descricao": "Dado um conjunto de preços por tamanho de corte, determine o maior lucro possível ao cortar uma haste de tamanho N, usando programação dinâmica.",
+    "exemplo_entrada": {"precos":[1,5,8,9], "n":4},
+    "exemplo_saida": 10
+  }
+]

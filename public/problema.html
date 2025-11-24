@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Resolver Problema</title>
+    <link rel="stylesheet" href="style.css">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"> 
+
+    <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.37.1/min/vs/loader.js"></script>
+    <script src="resolver.js" defer></script>
+</head>
+
+<body>
+
+    <div id="topbar">
+        <button onclick="window.location.href='/'">Voltar</button>
+        <h2 id="problemaTitulo"></h2>
+    </div>
+
+    <div id="conteudoPrincipal">
+        
+        <div id="painelInterativo">
+            
+            <div id="descricaoBox">
+                <h3>Problema</h3>
+                <p id="problemaDescricao">Carregando descrição...</p>
+            </div>
+
+            <div id="chatBox">
+                <h3>Ajuda do Gemini</h3>
+                <div id="mensagensChat">
+                    </div>
+                <div id="chatInputArea">
+                    <input type="text" id="chatInput" placeholder="Pergunte ao Gemini sobre o problema..." />
+                    <button id="enviarChat" class="chat-btn">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="solucaoFeedbackArea">
+                
+                <div id="botoesAcao">
+                    <button id="enviarSolucao" class="solucao-btn">Enviar Solução e Corrigir</button>
+                    <button id="mostrarSolucao" class="solucao-btn btn-solucao-alt">Mostrar Solução</button>
+                </div>
+
+                <div id="feedback">
+                    Aguardando envio. O Gemini fará o code review e dará o feedback aqui.
+                </div>
+
+                <div id="solucaoContainer" style="display: none;">
+                    
+                    <div id="analiseSolucao">
+                        </div>
+                    
+                    <div id="editorSolucao" style="height: 400px; border: 1px solid #30363d; margin-top: 15px;">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div id="painelDireito">
+            <div id="editor"></div>
+        </div>
+    </div>
+
+</body>
+</html>

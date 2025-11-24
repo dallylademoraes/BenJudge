@@ -1,0 +1,480 @@
+/* ---------------------------------------------------
+    FONTS & RESET
+---------------------------------------------------*/
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: "Inter", sans-serif;
+}
+
+body {
+    background: #f6f8fa;
+    color: #222;
+    transition: background 0.25s, color 0.25s;
+    /* Garante que o corpo não tenha rolagem extra */
+    min-height: 100vh;
+}
+
+body.dark {
+    background: #0d1117;
+    color: #c9d1d9;
+}
+
+/* ---------------------------------------------------
+    LISTA DE PROBLEMAS (PÁGINA PRINCIPAL)
+---------------------------------------------------*/
+
+#container {
+    max-width: 950px;
+    margin: 40px auto;
+    padding: 10px;
+}
+
+/* título */
+h1 {
+    text-align: center;
+    font-size: 30px;
+    margin-bottom: 25px;
+    font-weight: 700;
+}
+
+/* ---------------------------------------------------
+    FILTROS
+---------------------------------------------------*/
+
+#filtros {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 22px;
+    justify-content: center;
+}
+
+.filtro-btn {
+    padding: 10px 18px;
+    border: none;
+    border-radius: 8px;
+    background: #e5e7eb;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+    transition: 0.25s;
+}
+
+.filtro-btn:hover {
+    background: #d1d5db;
+}
+
+.filtro-btn.active {
+    background: #0066ff;
+    color: white;
+}
+
+body.dark .filtro-btn {
+    background: #1f2329;
+    color: #c9d1d9;
+}
+
+body.dark .filtro-btn.active {
+    background: #2380ff;
+}
+
+/* ---------------------------------------------------
+    CARDS DE PROBLEMAS
+---------------------------------------------------*/
+
+.problema-item {
+    background: white;
+    padding: 20px 24px;
+    border-radius: 14px;
+    margin-bottom: 16px;
+    box-shadow: 0px 4px 16px rgba(0,0,0,0.06);
+    border: 1px solid #e5e7eb;
+    transition: 0.25s ease;
+    cursor: pointer;
+}
+
+body.dark .problema-item {
+    background: #161b22;
+    border: 1px solid #30363d;
+}
+
+.problema-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0px 12px 28px rgba(0,0,0,0.12);
+}
+
+body.dark .problema-item:hover {
+    background: #1d2430;
+}
+
+/* título do problema */
+.prob-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+/* TAGS */
+.tag {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    margin-right: 8px;
+    margin-top: 6px;
+    color: white;
+}
+
+.tag.gulosos { background: #ff9800; }
+.tag.dy { background: #9c27b0; }
+.tag.dc { background: #0288d1; }
+
+/* dark mode tags */
+body.dark .tag.gulosos { background: #d98200; }
+body.dark .tag.dy { background: #7a1f8e; }
+body.dark .tag.dc { background: #007bb3; }
+
+/* ---------------------------------------------------
+    DIFICULDADE
+---------------------------------------------------*/
+
+.diff {
+    display: inline-block;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 6px;
+    margin-right: 8px;
+    margin-top: 6px;
+    border: 1px solid transparent;
+}
+
+.diff.easy {
+    background: #22c55e33;
+    color: #15803d;
+    border-color: #22c55e55;
+}
+
+.diff.medium {
+    background: #eab30833;
+    color: #a16207;
+    border-color: #eab30855;
+}
+
+.diff.hard {
+    background: #ef444433;
+    color: #b91c1c;
+    border-color: #ef444455;
+}
+
+/* dark mode */
+body.dark .diff.easy {
+    background: #14532d;
+    color: #86efac;
+    border-color: #4d7c0f;
+}
+
+body.dark .diff.medium {
+    background: #713f12;
+    color: #fde047;
+    border-color: #b45309;
+}
+
+body.dark .diff.hard {
+    background: #7f1d1d;
+    color: #fca5a5;
+    border-color: #dc2626;
+}
+
+/* ---------------------------------------------------
+    PROBLEMA + EDITOR (problema.html) - REESTRUTURADO
+---------------------------------------------------*/
+
+/* Fixa a barra superior */
+#topbar {
+    padding: 18px 24px;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    background: white;
+    border-bottom: 1px solid #ddd;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+body.dark #topbar {
+    background: #161b22;
+    border-bottom: 1px solid #30363d;
+}
+
+#topbar button {
+    background: #e5e7eb;
+    padding: 10px 22px; 
+    color: #111;
+    border: none;
+    border-radius: 8px; 
+    cursor: pointer;
+    font-size: 16px; 
+    font-weight: 600; 
+    transition: .25s;
+}
+
+#topbar button:hover {
+    background: #d1d5db;
+}
+
+/* Dark Mode */
+body.dark #topbar button {
+    background: #21262d;
+    color: #c9d1d9;
+}
+
+body.dark #topbar button:hover {
+    background: #2d333b;
+}
+
+/* título do problema */
+#topbar h2 {
+    font-size: 22px;
+    font-weight: 700;
+}
+
+/* Novo Container Flexível Principal - Garante que Editor e Painel Fiquem Lado a Lado */
+#conteudoPrincipal {
+    display: flex;
+    gap: 20px;
+    height: calc(100vh - 60px); 
+    padding: 20px;
+    max-width: 1600px; /* Largura máxima maior para dois painéis */
+    margin: 0 auto;
+}
+
+/* Painel Esquerdo: Descrição, Chat e Feedback (Interativo) */
+#painelInterativo {
+    flex: 1; 
+    display: flex;
+    flex-direction: column;
+}
+
+/* Painel Direito: Editor */
+#painelDireito {
+    flex: 1; 
+    display: flex;
+    flex-direction: column;
+}
+
+/* ------------------ Componentes do Painel Interativo ------------------ */
+
+/* 1. Descrição do Problema */
+#descricaoBox {
+    background: white;
+    padding: 18px 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    /* Altura flexível, mas com limite máximo */
+    max-height: 40%; 
+    overflow-y: auto;
+}
+#descricaoBox h3 { margin-bottom: 10px; color: #0066ff; }
+body.dark #descricaoBox {
+    background: #161b22;
+    border: 1px solid #30363d;
+}
+
+/* 2. Área de Chat (Gemini 1) */
+#chatBox {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1; /* Cresce para ocupar o espaço restante */
+    min-height: 250px;
+    margin-bottom: 20px;
+}
+#chatBox h3 { margin-bottom: 15px; color: #ff9800; }
+body.dark #chatBox {
+    background: #161b22;
+    border: 1px solid #30363d;
+}
+
+#mensagensChat {
+    flex-grow: 1;
+    overflow-y: auto; /* Rolagem apenas nas mensagens */
+    margin-bottom: 15px;
+    display: flex; /* Para alinhar mensagens */
+    flex-direction: column;
+}
+
+/* Estilo das mensagens */
+.chat-message {
+    padding: 8px 12px;
+    border-radius: 18px;
+    margin-bottom: 8px;
+    max-width: 85%;
+    line-height: 1.4;
+}
+.user-message {
+    background: #eef4ff; /* Azul claro */
+    color: #1a428a;
+    margin-left: auto;
+    border-bottom-right-radius: 4px; /* Ponta do balão */
+}
+.gemini-message {
+    background: #f0f0f0; /* Cinza claro */
+    color: #333;
+    margin-right: auto;
+    border-bottom-left-radius: 4px; /* Ponta do balão */
+}
+body.dark .user-message { background: #1c2638; color: #bcd0ff; }
+body.dark .gemini-message { background: #2d333b; color: #c9d1d9; }
+
+/* Input e Botão do Chat */
+#chatInputArea {
+    display: flex;
+    gap: 10px;
+}
+#chatInput {
+    flex-grow: 1;
+    padding: 10px 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 15px;
+}
+body.dark #chatInput {
+    background: #0d1117;
+    border-color: #30363d;
+    color: #c9d1d9;
+}
+.chat-btn {
+    background: #0066ff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: 0.25s;
+}
+.chat-btn:hover { background: #0052cc; }
+
+/* ------------------ Botões de Ação e Feedback (Parte 3) ------------------ */
+
+#solucaoFeedbackArea {
+    margin-top: auto;
+}
+
+/* Botões de Envio e Solução Lado a Lado */
+#botoesAcao {
+    display: flex;
+    gap: 15px; 
+    margin-bottom: 18px;
+}
+
+/* Estilo Base do Botão de Solução/Envio (CORRIGIDO: Removido width: 100%) */
+.solucao-btn {
+    display: block; 
+    width: auto; /* Permite que o flexbox controle a largura */
+    flex-grow: 1; /* Distribui o espaço entre os botões */
+    padding: 12px 22px;
+    font-size: 16px;
+    background: #10b981; /* Verde (Enviar Solução) */
+    color: white;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: 0.25s;
+    font-weight: 600;
+}
+
+/* Cor hover para Enviar Solução */
+.solucao-btn:hover { background: #059669; }
+body.dark .solucao-btn { background: #059669; }
+body.dark .solucao-btn:hover { background: #047857; }
+
+/* Estilo alternativo para o botão 'Mostrar Solução' */
+.btn-solucao-alt {
+    background: #3b82f6; /* Azul */
+}
+.btn-solucao-alt:hover {
+    background: #2563eb;
+}
+body.dark .btn-solucao-alt {
+    background: #60a5fa;
+}
+body.dark .btn-solucao-alt:hover {
+    background: #3b82f6;
+}
+
+/* Feedback (Gemini 2) */
+#feedback {
+    white-space: pre-wrap;
+    background: #fef2f2; 
+    padding: 16px;
+    border-radius: 12px;
+    border: 1px solid #fecaca;
+    margin-top: 12px;
+    font-family: "JetBrains Mono", monospace;
+    line-height: 1.5;
+    min-height: 80px; 
+    margin-bottom: 18px; /* Adiciona margem abaixo do feedback para separar da Solução */
+}
+
+body.dark #feedback {
+    background: #331515;
+    border: 1px solid #5a2020;
+    color: #ff9d9d;
+}
+
+/* ------------------ Solução Detalhada (Gemini 3) ------------------ */
+
+#solucaoContainer {
+    margin-top: 10px; /* Pequena margem acima do container */
+}
+
+/* Área de Análise (Texto simples, substituindo #solucaoDetalhada) */
+#analiseSolucao {
+    background: #fffbe6; /* Amarelo claro/creme para a análise */
+    padding: 18px;
+    border-radius: 12px;
+    border: 1px solid #fde047;
+    margin-bottom: 15px; /* Separação do editor de código */
+}
+#analiseSolucao h3 { color: #8a6800; } /* Cor do título para a análise */
+
+body.dark #analiseSolucao {
+    background: #30240d;
+    border: 1px solid #713f12;
+    color: #c9d1d9;
+}
+
+
+/* Editor de Solução (Monaco Editor 2) */
+#editorSolucao {
+    height: 400px; /* A altura é definida no HTML inline, mas garantimos aqui */
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid #ddd;
+}
+body.dark #editorSolucao {
+    border: 1px solid #30363d;
+}
+
+
+/* ------------------ Editor de Código (Principal) ------------------ */
+#editor {
+    flex-grow: 1; 
+    min-height: 400px; 
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 0; 
+    border: 1px solid #ddd;
+}
+body.dark #editor {
+    border: 1px solid #30363d;
+}

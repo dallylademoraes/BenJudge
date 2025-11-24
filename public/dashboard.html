@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <title>BenJudge — Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div id="dashboardContainer">
+
+        <h1>📊 Dashboard</h1>
+
+        <div id="stats">
+            <div class="statCard">
+                <h2>XP Total</h2>
+                <p id="xpTotal">0</p>
+            </div>
+
+            <div class="statCard">
+                <h2>Nível</h2>
+                <p id="nivelUser">0</p>
+            </div>
+
+            <div class="statCard">
+                <h2>Pontuação</h2>
+                <p id="pontosUser">0</p>
+            </div>
+
+            <div class="statCard">
+                <h2>Envios</h2>
+                <p id="totalEnvios">0</p>
+            </div>
+        </div>
+
+        <h2>Acertos x Erros</h2>
+        <canvas id="graficoAcertos" width="400" height="200"></canvas>
+
+        <h2>XP por Dia</h2>
+        <canvas id="graficoXP" width="400" height="200"></canvas>
+
+        <h2>Envios Recentes</h2>
+        <div id="listaEnvios"></div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="dashboard.js"></script>
+
+</body>
+
+</html>
