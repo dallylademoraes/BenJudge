@@ -1,6 +1,11 @@
 import * as dotenv from "dotenv";
 dotenv.config({ override: true });
 
+console.log("==== SUPABASE PROJETO ATUAL ====");
+console.log("URL:", process.env.SUPABASE_URL);
+console.log("SERVICE_ROLE:", process.env.SUPABASE_KEY ? process.env.SUPABASE_KEY.slice(0, 20) + "..." : "(não definido)");
+console.log("===============================");
+
 import express from "express";
 import fs from "fs";
 import axios from "axios";
@@ -11,6 +16,35 @@ const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.static("public"));
+
+/* ============================================
+    CACHE EM MEMÓRIA (Para evitar cobranças)
+============================================ */
+const apiCache = {}; 
+const CACHE_EXPIRATION_TIME = 3600000; // 1 hora em milissegundos
+
+/** Cria uma chave única baseada no endpoint, ID do problema e o conteúdo da requisição. */
+const cacheKey = (endpoint, problema_id, content = '') => 
+    `${endpoint}_${problema_id}_${content.slice(0, 50).replace(/\s/g, '_')}`;
+
+/** Verifica o cache antes de fazer a chamada à API. */
+const cacheCheck = (key, res) => {
+    const entry = apiCache[key];
+    if (entry && (Date.now() < entry.expires)) {
+        console.log(`[CACHE HIT] Retornando resposta para ${key}`);
+        res.json(entry.data);
+        return true;
+    }
+    return false;
+};
+
+/** Salva a resposta no cache com tempo de expiração. */
+const cacheStore = (key, data) => {
+    apiCache[key] = {
+        data,
+        expires: Date.now() + CACHE_EXPIRATION_TIME
+    };
+};
 
 /* ============================================
     SUPABASE CLIENT
@@ -98,13 +132,17 @@ app.get("/me", async (req, res) => {
 ============================================ */
 app.post("/chat", async (req, res) => {
     const { problema_id, pergunta } = req.body;
+    const cacheKeyChat = cacheKey('chat', problema_id, pergunta);
+
+    // 🌟 1. VERIFICA O CACHE
+    if (cacheCheck(cacheKeyChat, res)) return;
 
     const problema = problemas.find(p => p.id === problema_id);
     if (!problema)
         return res.status(404).json({ erro: "Problema não encontrado" });
 
     // ======================
-    // PROMPT DE AJUDA
+    // PROMPT DE AJUDA OTIMIZADO (Redução de Tokens de Entrada)
     // ======================
     const promptAjuda = `
 Você é um assistente de programação prestativo e didático.
@@ -112,8 +150,8 @@ Sua função é APENAS ajudar o usuário a entender o problema e a pensar na sol
 NÃO forneça código ou a solução completa. Mantenha as respostas focadas no conceito e na lógica.
 Seja o mais breve e direto possível, com no máximo 50 palavras.
 
-PROBLEMA (para contexto):
-${JSON.stringify(problema, null, 2)}
+PROBLEMA (foco na descrição para reduzir tokens de entrada):
+${problema.descricao}
 
 PERGUNTA DO USUÁRIO:
 ${pergunta}
@@ -128,29 +166,27 @@ ${pergunta}
                         parts: [{ text: promptAjuda }]
                     }
                 ],
-                // CORREÇÃO: Usando 'generationConfig' e limite para garantir que a resposta curta seja gerada
                 generationConfig: {
                     maxOutputTokens: 1500
                 }
             }
         );
 
-        // Tentativa de obter o texto, que pode ser nulo se a resposta for bloqueada
         const texto = resposta.data.candidates?.[0]?.content?.parts?.[0]?.text;
         
-        // NOVO LOG: Loga a resposta da API no servidor se o texto estiver vazio
         if (!texto) {
             console.error("Gemini retornou texto vazio ou bloqueado. Resposta da API:", JSON.stringify(resposta.data, null, 2));
         }
 
         const respostaFinal = texto || "Erro ao obter ajuda do Gemini. (Verifique o log do servidor para detalhes.)";
+        const responseData = { resposta: respostaFinal };
+        
+        // 🌟 2. ARMAZENA NO CACHE
+        cacheStore(cacheKeyChat, responseData);
 
-        res.json({
-            resposta: respostaFinal
-        });
+        res.json(responseData);
 
     } catch (erro) {
-        // Log detalhado para erros de conexão ou 4xx/5xx da API
         console.error("Erro no Gemini Chat (Catch):", erro.response?.data || erro);
         res.status(500).json({
             erro: "Erro ao consultar Gemini para ajuda",
@@ -163,6 +199,7 @@ ${pergunta}
     CORRIGIR SOLUÇÃO (GEMINI 2 - CODE REVIEW)
 ============================================ */
 app.post("/corrigir", async (req, res) => {
+    // Não há cache aqui pois a correção depende do código UNICO do usuário.
     const { problema_id, resposta_usuario } = req.body;
     const usuario_id = req.usuario_id;
 
@@ -192,9 +229,6 @@ ${resposta_usuario}
 `;
 
     try {
-        // ======================
-        // CHAMADA AO GEMINI (modelo gemini-2.5-flash)
-        // ======================
         const resposta = await axios.post(
             `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
             {
@@ -213,7 +247,7 @@ ${resposta_usuario}
         const correta = texto.toLowerCase().includes("correto");
 
         /* ======================
-            XP GANHO
+            LÓGICA DE PERSISTÊNCIA (XP, PONTUAÇÃO, ETC.)
         ====================== */
         let xp_ganho = correta ? 50 : 10;
 
@@ -225,9 +259,6 @@ ${resposta_usuario}
 
         if (!tentativas || tentativas.length === 0) xp_ganho += 30;
 
-        /* ======================
-            SALVAR ENVIO
-        ====================== */
         await supabase.from("envios").insert({
             usuario_id,
             problema_id,
@@ -236,23 +267,20 @@ ${resposta_usuario}
             nota: correta ? 10 : 0
         });
 
-        /* ======================
-            ATUALIZAR XP
-        ====================== */
         await supabase.rpc("incrementar_xp", {
             usuario_id_param: usuario_id,
             quantidade: xp_ganho
         });
 
-        /* ======================
-            ATUALIZAR PONTUAÇÃO
-        ====================== */
         if (correta) {
             await supabase.rpc("incrementar_pontuacao", {
                 usuario_id_param: usuario_id,
                 quantidade: 1
             });
         }
+        /* ======================
+            FIM DA LÓGICA DE PERSISTÊNCIA
+        ====================== */
 
         res.json({
             avaliacao: texto,
@@ -273,15 +301,16 @@ ${resposta_usuario}
     REVELAR SOLUÇÃO E COMPARAÇÃO (GEMINI 3)
 ============================================ */
 app.post("/revelar-solucao", async (req, res) => {
-    const { problema_id, resposta_usuario } = req.body; // Recebe o código atual do usuário
+    const { problema_id, resposta_usuario } = req.body; 
+    const cacheKeySolucao = cacheKey('solucao', problema_id);
+    
+    // 🌟 1. VERIFICA O CACHE
+    if (cacheCheck(cacheKeySolucao, res)) return; 
     
     const problema = problemas.find(p => p.id === problema_id);
     if (!problema)
         return res.status(404).json({ erro: "Problema não encontrado" });
 
-    // ======================
-    // PROMPT SOLUÇÃO E COMPARAÇÃO (CORRIGIDO PARA FORMATO JSON OBRIGATÓRIO)
-    // ======================
     const promptSolucao = `
 Você é um tutor de programação. Sua tarefa é fornecer a solução ideal para o problema e, em seguida, comparar essa solução com o código submetido pelo aluno.
 
@@ -309,16 +338,12 @@ ${resposta_usuario || "O aluno ainda não tentou submeter um código."}
                     }
                 ],
                 generationConfig: {
-                    // Limite alto para acomodar o objeto JSON, o código da solução e a análise
                     maxOutputTokens: 2500 
                 }
             }
         );
         
-        // Novo: Tenta analisar a resposta como JSON
         const textoBruto = resposta.data.candidates?.[0]?.content?.parts?.[0]?.text;
-        
-        // Expressão regular para encontrar o primeiro objeto JSON completo na resposta
         const jsonMatch = textoBruto ? textoBruto.match(/\{[\s\S]*\}/) : null;
         
         if (!jsonMatch) {
@@ -326,7 +351,6 @@ ${resposta_usuario || "O aluno ainda não tentou submeter um código."}
             return res.status(500).json({ erro: "Erro de formatação do Gemini (Esperado JSON)." });
         }
         
-        // Tenta fazer o parsing do JSON encontrado
         let dados;
         try {
             dados = JSON.parse(jsonMatch[0]);
@@ -335,11 +359,15 @@ ${resposta_usuario || "O aluno ainda não tentou submeter um código."}
             return res.status(500).json({ erro: "Erro de parsing do JSON do Gemini." });
         }
         
-        // Envia dados separados para o frontend
-        res.json({
-            solucao: dados.solucao_codigo, // Código para o Monaco Editor
-            analise: dados.analise // Texto para o container de análise
-        });
+        const responseData = {
+            solucao: dados.solucao_codigo,
+            analise: dados.analise
+        };
+
+        // 🌟 2. ARMAZENA NO CACHE
+        cacheStore(cacheKeySolucao, responseData);
+
+        res.json(responseData);
 
     } catch (erro) {
         console.error("Erro Gemini Solução:", erro.response?.data || erro);
