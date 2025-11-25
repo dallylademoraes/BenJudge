@@ -1,33 +1,27 @@
 import * as dotenv from "dotenv";
 dotenv.config({ override: true });
 
-console.log("==== SUPABASE PROJETO ATUAL ====");
-console.log("URL:", process.env.SUPABASE_URL);
-console.log("SERVICE_ROLE:", process.env.SUPABASE_KEY ? process.env.SUPABASE_KEY.slice(0, 20) + "..." : "(não definido)");
-console.log("===============================");
-
 import express from "express";
 import fs from "fs";
 import axios from "axios";
 import cookieParser from "cookie-parser";
 import { createClient } from "@supabase/supabase-js";
 
+// --- Variáveis de Inicialização ---
 const app = express();
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.static("public"));
 
 /* ============================================
-    CACHE EM MEMÓRIA (Para evitar cobranças)
+    CACHE EM MEMÓRIA
 ============================================ */
 const apiCache = {}; 
-const CACHE_EXPIRATION_TIME = 3600000; // 1 hora em milissegundos
+const CACHE_EXPIRATION_TIME = 3600000; 
 
-/** Cria uma chave única baseada no endpoint, ID do problema e o conteúdo da requisição. */
 const cacheKey = (endpoint, problema_id, content = '') => 
     `${endpoint}_${problema_id}_${content.slice(0, 50).replace(/\s/g, '_')}`;
 
-/** Verifica o cache antes de fazer a chamada à API. */
 const cacheCheck = (key, res) => {
     const entry = apiCache[key];
     if (entry && (Date.now() < entry.expires)) {
@@ -38,7 +32,6 @@ const cacheCheck = (key, res) => {
     return false;
 };
 
-/** Salva a resposta no cache com tempo de expiração. */
 const cacheStore = (key, data) => {
     apiCache[key] = {
         data,
@@ -94,10 +87,36 @@ app.use(async (req, res, next) => {
 });
 
 /* ============================================
-    LISTAR PROBLEMAS
+    LISTAR PROBLEMAS (COM CHECK DE RESOLVIDO)
 ============================================ */
-app.get("/problemas", (req, res) => {
-    res.json(problemas);
+app.get("/problemas", async (req, res) => {
+    try {
+        // 1. Busca no banco quais problemas esse usuário já acertou
+        const { data: acertos, error } = await supabase
+            .from("envios")
+            .select("problema_id")
+            .eq("usuario_id", req.usuario_id)
+            .eq("correta", true);
+
+        if (error) throw error;
+
+        // 2. Cria um conjunto (Set) de IDs resolvidos para busca rápida
+        // (Set é melhor que Array para verificar 'has')
+        const idsResolvidos = new Set(acertos.map(item => item.problema_id));
+
+        // 3. Mapeia a lista original adicionando a flag 'resolvido'
+        const problemasComStatus = problemas.map(p => ({
+            ...p,
+            resolvido: idsResolvidos.has(p.id) // true se estiver no set, false se não
+        }));
+
+        res.json(problemasComStatus);
+
+    } catch (err) {
+        console.error("Erro ao listar problemas com status:", err);
+        // Se der erro no banco, retorna a lista sem o status para não quebrar o app
+        res.json(problemas); 
+    }
 });
 
 /* ============================================
@@ -134,23 +153,19 @@ app.post("/chat", async (req, res) => {
     const { problema_id, pergunta } = req.body;
     const cacheKeyChat = cacheKey('chat', problema_id, pergunta);
 
-    // 🌟 1. VERIFICA O CACHE
     if (cacheCheck(cacheKeyChat, res)) return;
 
     const problema = problemas.find(p => p.id === problema_id);
     if (!problema)
         return res.status(404).json({ erro: "Problema não encontrado" });
 
-    // ======================
-    // PROMPT DE AJUDA OTIMIZADO (Redução de Tokens de Entrada)
-    // ======================
     const promptAjuda = `
 Você é um assistente de programação prestativo e didático.
 Sua função é APENAS ajudar o usuário a entender o problema e a pensar na solução, sem dar a resposta direta.
 NÃO forneça código ou a solução completa. Mantenha as respostas focadas no conceito e na lógica.
 Seja o mais breve e direto possível, com no máximo 50 palavras.
 
-PROBLEMA (foco na descrição para reduzir tokens de entrada):
+PROBLEMA (foco na descrição):
 ${problema.descricao}
 
 PERGUNTA DO USUÁRIO:
@@ -161,288 +176,169 @@ ${pergunta}
         const resposta = await axios.post(
             `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
             {
-                contents: [
-                    {
-                        parts: [{ text: promptAjuda }]
-                    }
-                ],
-                generationConfig: {
-                    maxOutputTokens: 1500
-                }
+                contents: [{ parts: [{ text: promptAjuda }] }],
+                generationConfig: { maxOutputTokens: 1500 }
             }
         );
 
         const texto = resposta.data.candidates?.[0]?.content?.parts?.[0]?.text;
-        
-        if (!texto) {
-            console.error("Gemini retornou texto vazio ou bloqueado. Resposta da API:", JSON.stringify(resposta.data, null, 2));
-        }
-
-        const respostaFinal = texto || "Erro ao obter ajuda do Gemini. (Verifique o log do servidor para detalhes.)";
+        const respostaFinal = texto || "Erro ao obter ajuda do Gemini.";
         const responseData = { resposta: respostaFinal };
         
-        // 🌟 2. ARMAZENA NO CACHE
         cacheStore(cacheKeyChat, responseData);
-
         res.json(responseData);
 
     } catch (erro) {
-        console.error("Erro no Gemini Chat (Catch):", erro.response?.data || erro);
-        res.status(500).json({
-            erro: "Erro ao consultar Gemini para ajuda",
-            detalhe: erro.message
-        });
+        console.error("Erro no Gemini Chat:", erro.response?.data || erro);
+        res.status(500).json({ erro: "Erro ao consultar Gemini para ajuda", detalhe: erro.message });
     }
 });
 
 /* ============================================
-    CORRIGIR SOLUÇÃO (GEMINI 2 - CODE REVIEW)
+    CORRIGIR SOLUÇÃO (GEMINI 2)
 ============================================ */
 app.post("/corrigir", async (req, res) => {
-    // Não há cache aqui pois a correção depende do código UNICO do usuário.
-    const { problema_id, resposta_usuario } = req.body;
+    const { problema_id, resposta_usuario, complexidade_usuario } = req.body;
     const usuario_id = req.usuario_id;
 
     const problema = problemas.find(p => p.id === problema_id);
-    if (!problema)
-        return res.status(404).json({ erro: "Problema não encontrado" });
+    if (!problema) return res.status(404).json({ erro: "Problema não encontrado" });
 
-    // ======================
-    // PROMPT SEGURO
-    // ======================
     const promptSeguro = `
-Você é um corretor de provas de algoritmos.
-NÃO forneça código, NÃO forneça solução completa e NÃO mostre como resolver passo a passo.
+Você é um professor rigoroso de Análise de Algoritmos.
+Avalie:
+1. A CORREÇÃO funcional do código.
+2. A ANÁLISE DE COMPLEXIDADE fornecida.
 
-Avalie a resposta do aluno.
-Retorne EXATAMENTE:
-- "correto" ou "incorreto"
-- Nota de 0 a 10
-- Pequena justificativa (sem ensinar)
-- Uma dica curta (sem dar a solução)
+Dados:
+- Problema: ${JSON.stringify(problema, null, 2)}
+- Código do Aluno: ${resposta_usuario}
+- Complexidade estimada: ${complexidade_usuario}
 
-PROBLEMA:
-${JSON.stringify(problema, null, 2)}
-
-RESPOSTA DO ALUNO:
-${resposta_usuario}
+Retorne formato curto:
+- Veredito do Código: "Correto" ou "Incorreto"
+- Veredito da Complexidade: "Correta" ou "Incorreta" (A real é X)
+- Nota: 0 a 10.
+- Justificativa: Breve explicação.
 `;
 
     try {
         const resposta = await axios.post(
             `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
-            {
-                contents: [
-                    {
-                        parts: [{ text: promptSeguro }]
-                    }
-                ]
-            }
+            { contents: [{ parts: [{ text: promptSeguro }] }] }
         );
 
-        const texto =
-            resposta.data.candidates?.[0]?.content?.parts?.[0]?.text ||
-            "Erro ao interpretar resposta do Gemini.";
+        const texto = resposta.data.candidates?.[0]?.content?.parts?.[0]?.text || "Erro Gemini.";
+        const codigoCorreto = texto.toLowerCase().includes("veredito do código: correto");
+        const complexidadeCorreta = texto.toLowerCase().includes("veredito da complexidade: correta");
 
-        const correta = texto.toLowerCase().includes("correto");
-
-        /* ======================
-            LÓGICA DE PERSISTÊNCIA (XP, PONTUAÇÃO, ETC.)
-        ====================== */
-        let xp_ganho = correta ? 50 : 10;
+        let xp_ganho = 0;
+        if (codigoCorreto) {
+            xp_ganho += 30; 
+            if (complexidadeCorreta) xp_ganho += 20;
+        } else {
+            xp_ganho += 5;
+        }
 
         const { data: tentativas } = await supabase
-            .from("envios")
-            .select("*")
-            .eq("usuario_id", usuario_id)
-            .eq("problema_id", problema_id);
+            .from("envios").select("*").eq("usuario_id", usuario_id).eq("problema_id", problema_id);
 
-        if (!tentativas || tentativas.length === 0) xp_ganho += 30;
+        if ((!tentativas || tentativas.length === 0) && codigoCorreto) xp_ganho += 20;
 
         await supabase.from("envios").insert({
             usuario_id,
             problema_id,
             resposta: resposta_usuario,
-            correta,
-            nota: correta ? 10 : 0
+            correta: codigoCorreto,
+            nota: (codigoCorreto && complexidadeCorreta) ? 10 : (codigoCorreto ? 7 : 0)
         });
 
-        await supabase.rpc("incrementar_xp", {
-            usuario_id_param: usuario_id,
-            quantidade: xp_ganho
-        });
+        await supabase.rpc("incrementar_xp", { usuario_id_param: usuario_id, quantidade: xp_ganho });
 
-        if (correta) {
-            await supabase.rpc("incrementar_pontuacao", {
-                usuario_id_param: usuario_id,
-                quantidade: 1
-            });
+        if (codigoCorreto) {
+            await supabase.rpc("incrementar_pontuacao", { usuario_id_param: usuario_id, quantidade: 1 });
         }
-        /* ======================
-            FIM DA LÓGICA DE PERSISTÊNCIA
-        ====================== */
 
-        res.json({
-            avaliacao: texto,
-            correta,
-            xp_ganho
-        });
+        res.json({ avaliacao: texto, correta: codigoCorreto, xp_ganho });
 
     } catch (erro) {
-        console.error("Erro Gemini:", erro.response?.data || erro);
-        res.status(500).json({
-            erro: "Erro ao consultar Gemini",
-            detalhe: erro.message
-        });
+        console.error("Erro Gemini:", erro);
+        res.status(500).json({ erro: "Erro ao consultar Gemini", detalhe: erro.message });
     }
 });
 
 /* ============================================
-    REVELAR SOLUÇÃO E COMPARAÇÃO (GEMINI 3)
+    REVELAR SOLUÇÃO (GEMINI 3)
 ============================================ */
 app.post("/revelar-solucao", async (req, res) => {
     const { problema_id, resposta_usuario } = req.body; 
     const cacheKeySolucao = cacheKey('solucao', problema_id);
     
-    // 🌟 1. VERIFICA O CACHE
     if (cacheCheck(cacheKeySolucao, res)) return; 
     
     const problema = problemas.find(p => p.id === problema_id);
-    if (!problema)
-        return res.status(404).json({ erro: "Problema não encontrado" });
+    if (!problema) return res.status(404).json({ erro: "Problema não encontrado" });
 
     const promptSolucao = `
-Você é um tutor de programação. Sua tarefa é fornecer a solução ideal para o problema e, em seguida, comparar essa solução com o código submetido pelo aluno.
+Você é um tutor. Forneça a solução ideal e compare com o aluno.
+Retorne EXATAMENTE UM JSON com duas chaves:
+1. "analise": Explicação concisa (max 150 palavras).
+2. "solucao_codigo": Solução ideal em Python.
 
-Para garantir o processamento correto, você deve retornar a resposta no formato JSON.
-Retorne EXATAMENTE UM objeto JSON com duas chaves:
-1.  **analise**: Explicação concisa (máximo 150 palavras) do que faltou no código do aluno, focada em lógica e conceitos.
-2.  **solucao_codigo**: A solução ideal completa do problema. Use o código em JavaScript ou Python.
-
-NÃO retorne nenhum texto antes ou depois do objeto JSON.
-
-PROBLEMA:
-${JSON.stringify(problema, null, 2)}
-
-CÓDIGO ATUAL DO ALUNO:
-${resposta_usuario || "O aluno ainda não tentou submeter um código."}
+PROBLEMA: ${JSON.stringify(problema, null, 2)}
+CÓDIGO ALUNO: ${resposta_usuario || "Não submetido."}
 `;
 
     try {
         const resposta = await axios.post(
             `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${process.env.GEMINI_API_KEY}`,
             {
-                contents: [
-                    {
-                        parts: [{ text: promptSolucao }]
-                    }
-                ],
-                generationConfig: {
-                    maxOutputTokens: 2500 
-                }
+                contents: [{ parts: [{ text: promptSolucao }] }],
+                generationConfig: { maxOutputTokens: 2500 }
             }
         );
         
         const textoBruto = resposta.data.candidates?.[0]?.content?.parts?.[0]?.text;
         const jsonMatch = textoBruto ? textoBruto.match(/\{[\s\S]*\}/) : null;
         
-        if (!jsonMatch) {
-            console.error("Gemini não retornou o objeto JSON formatado. Resposta bruta:", textoBruto);
-            return res.status(500).json({ erro: "Erro de formatação do Gemini (Esperado JSON)." });
-        }
+        if (!jsonMatch) throw new Error("JSON não encontrado na resposta");
         
-        let dados;
-        try {
-            dados = JSON.parse(jsonMatch[0]);
-        } catch (e) {
-            console.error("Erro ao fazer parsing do JSON:", e);
-            return res.status(500).json({ erro: "Erro de parsing do JSON do Gemini." });
-        }
-        
-        const responseData = {
-            solucao: dados.solucao_codigo,
-            analise: dados.analise
-        };
+        let dados = JSON.parse(jsonMatch[0]);
+        const responseData = { solucao: dados.solucao_codigo, analise: dados.analise };
 
-        // 🌟 2. ARMAZENA NO CACHE
         cacheStore(cacheKeySolucao, responseData);
-
         res.json(responseData);
 
     } catch (erro) {
-        console.error("Erro Gemini Solução:", erro.response?.data || erro);
-        res.status(500).json({
-            erro: "Erro ao obter solução",
-            detalhe: erro.message
-        });
+        console.error("Erro Solução:", erro);
+        res.status(500).json({ erro: "Erro ao obter solução", detalhe: erro.message });
     }
 });
 
 /* ============================================
-    RANKING
+    ROTAS DE DADOS
 ============================================ */
 app.get("/ranking", async (req, res) => {
-    const { data, error } = await supabase
-        .from("usuarios")
-        .select("*")
-        .order("pontuacao", { ascending: false })
-        .order("xp", { ascending: false })
-        .order("nivel", { ascending: false });
-
-    if (error) {
-        console.error("Erro ranking:", error);
-        return res.status(500).json({ erro: "Falha ao buscar ranking" });
-    }
-
+    const { data, error } = await supabase.from("usuarios").select("*").order("pontuacao", { ascending: false });
+    if (error) return res.status(500).json({ erro: "Falha ranking" });
     res.json(data);
 });
 
-/* ============================================
-    DASHBOARD
-============================================ */
 app.get("/dashboard/acertos", async (req, res) => {
-    const usuario_id = req.usuario_id;
-
-    const { data } = await supabase
-        .from("envios")
-        .select("correta")
-        .eq("usuario_id", usuario_id);
-
+    const { data } = await supabase.from("envios").select("correta").eq("usuario_id", req.usuario_id);
     let acertos = 0, erros = 0;
-
     data.forEach(e => e.correta ? acertos++ : erros++);
-
     res.json({ acertos, erros });
 });
 
 app.get("/dashboard/xp", async (req, res) => {
-    const usuario_id = req.usuario_id;
-
-    const { data } = await supabase
-        .from("xp_hist")
-        .select("xp, criado_em")
-        .eq("usuario_id", usuario_id)
-        .order("criado_em", { ascending: true });
-
+    const { data } = await supabase.from("xp_hist").select("xp, criado_em").eq("usuario_id", req.usuario_id).order("criado_em", { ascending: true });
     res.json(data);
 });
 
 app.get("/dashboard/envios", async (req, res) => {
-    const usuario_id = req.usuario_id;
-
-    const { data } = await supabase
-        .from("envios")
-        .select("*")
-        .eq("usuario_id", usuario_id)
-        .order("criado_em", { ascending: false })
-        .limit(20);
-
+    const { data } = await supabase.from("envios").select("*").eq("usuario_id", req.usuario_id).order("criado_em", { ascending: false }).limit(20);
     res.json(data);
 });
 
-/* ============================================
-    START SERVER
-============================================ */
-app.listen(process.env.PORT || 3000, () =>
-    console.log("🔥 BenJudge backend rodando em http://localhost:3000")
-);
+app.listen(process.env.PORT || 3000, () => console.log("🔥 BenJudge rodando..."));

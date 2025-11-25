@@ -5,6 +5,9 @@
     <meta charset="UTF-8">
     <title>BenJudge — Problemas</title>
     <link rel="stylesheet" href="style.css">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
     <script src="script.js" defer></script>
 </head>
 
@@ -14,17 +17,111 @@
 
     <h1>Problemas</h1>
 
-    <!-- FILTRO -->
     <div id="filtros">
         <button class="filtro-btn active" data-cat="all">Todos</button>
         <button class="filtro-btn" data-cat="gulosos">Guloso</button>
         <button class="filtro-btn" data-cat="dy">Programação Dinâmica</button>
         <button class="filtro-btn" data-cat="dc">Divide & Conquer</button>
+        <button class="filtro-btn" data-cat="prova">Provas Antigas</button>
     </div>
 
     <div id="listaProblemas"></div>
 
 </div>
+
+<div id="toast-novidade" class="toast-container">
+    <div class="toast-icon">
+        <i class="fas fa-scroll"></i>
+    </div>
+    <div class="toast-content">
+        <strong>Lista Atualizada!</strong>
+        <p>Novos problemas inspirados em <span class="highlight">Provas Antigas</span> foram adicionados.</p>
+    </div>
+    <button class="toast-close" onclick="fecharToast()">
+        <i class="fas fa-times"></i>
+    </button>
+</div>
+
+<div id="welcome-modal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>👋 Bem-vindo ao BenJudge!</h2>
+        </div>
+        <div class="modal-body">
+            <p>O BenJudge é o seu <strong>Juiz Online Inteligente</strong>, criado para te ajudar a dominar <em>Projeto e Análise de Algoritmos (PAA)</em>.</p>
+            
+            <ul class="feature-list">
+                <li>
+                    <span class="icon">🤖</span>
+                    <div>
+                        <strong>IA Tutora</strong>
+                        <p>Tire dúvidas conceituais no chat antes de codar.</p>
+                    </div>
+                </li>
+                <li>
+                    <span class="icon">⚖️</span>
+                    <div>
+                        <strong>Correção Rigorosa</strong>
+                        <p>O Gemini avalia se seu código funciona E se a complexidade (Big-O) está certa.</p>
+                    </div>
+                </li>
+                <li>
+                    <span class="icon">💡</span>
+                    <div>
+                        <strong>Solução Detalhada</strong>
+                        <p>Travou? Veja o código ideal e uma análise do que faltou no seu.</p>
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <div class="modal-footer">
+            <button class="start-btn" onclick="fecharBemVindo()">Começar a Praticar 🚀</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- LÓGICA DO MODAL DE BOAS-VINDAS ---
+    function fecharBemVindo() {
+        const modal = document.getElementById('welcome-modal');
+        modal.classList.remove('show');
+        localStorage.setItem('benjudge_visited', 'true');
+        
+        // Se acabou de chegar, mostra o toast depois de fechar o modal
+        setTimeout(mostrarToastSeNecessario, 1000);
+    }
+
+    // --- LÓGICA DO TOAST (NOVIDADES) ---
+    function fecharToast() {
+        const toast = document.getElementById('toast-novidade');
+        toast.classList.remove('show');
+        localStorage.setItem('novidadeVistra_v1', 'true');
+    }
+
+    function mostrarToastSeNecessario() {
+        const jaViuNovidade = localStorage.getItem('novidadeVistra_v1');
+        if (!jaViuNovidade) {
+            const toast = document.getElementById('toast-novidade');
+            if (toast) toast.classList.add('show');
+        }
+    }
+
+    // Verifica ao carregar a página
+    document.addEventListener('DOMContentLoaded', () => {
+        const jaVisitou = localStorage.getItem('benjudge_visited');
+
+        if (!jaVisitou) {
+            // Se é a primeira vez, mostra o MODAL
+            setTimeout(() => {
+                const modal = document.getElementById('welcome-modal');
+                if (modal) modal.classList.add('show');
+            }, 500);
+        } else {
+            // Se já visitou antes, verifica se precisa mostrar o TOAST de novidade
+            setTimeout(mostrarToastSeNecessario, 1500);
+        }
+    });
+</script>
 
 </body>
 </html>

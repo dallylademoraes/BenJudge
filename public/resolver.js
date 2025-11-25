@@ -1,19 +1,20 @@
 let editor;
 const problemaId = new URLSearchParams(window.location.search).get("id");
 
-// Variável global para o editor da solução (NOVO)
+// Variável global para o editor da solução (usado pelo Gemini 3)
 let solucaoEditor; 
 
 // Configuração do Monaco Editor
 require.config({ paths: { vs: "https://cdn.jsdelivr.net/npm/monaco-editor@0.37.1/min/vs" } });
 
 require(["vs/editor/editor.main"], () => {
-    // Detecta o tema, garantindo que o editor seja criado corretamente
+    // Detecta o tema
     const tema = localStorage.getItem("temaBenJudge") === "dark" ? "vs-dark" : "vs-light";
 
+    // Inicializa o editor principal
     editor = monaco.editor.create(document.getElementById("editor"), {
         value: "",
-        language: "plaintext",
+        language: "python", // Padrão para algoritmos, pode ser 'javascript' ou 'java'
         theme: tema,
         fontSize: 16,
         minimap: { enabled: false }
@@ -21,15 +22,18 @@ require(["vs/editor/editor.main"], () => {
 
     carregarProblema();
     
-    // Configura o listener do chat (Enter key)
-    document.getElementById("chatInput").addEventListener("keydown", function(event) {
-        if (event.key === "Enter") {
-            enviarMensagemChat();
-        }
-    });
+    // Configura listeners do Chat
+    const chatInput = document.getElementById("chatInput");
+    if (chatInput) {
+        chatInput.addEventListener("keydown", function(event) {
+            if (event.key === "Enter") enviarMensagemChat();
+        });
+    }
 
-    // Configura o listener do botão de envio do chat
-    document.getElementById("enviarChat").onclick = enviarMensagemChat;
+    const btnChat = document.getElementById("enviarChat");
+    if (btnChat) {
+        btnChat.onclick = enviarMensagemChat;
+    }
 });
 
 // --- Lógica de Carregamento Inicial (Gemini 1 - Descrição) ---
@@ -39,12 +43,7 @@ async function carregarProblema() {
         const problema = await res.json();
 
         document.getElementById("problemaTitulo").innerText = problema.titulo;
-        
-        // 1. Carrega a descrição do problema
         document.getElementById("problemaDescricao").innerText = problema.descricao;
-        
-        // 2. Inicia o chat com a primeira mensagem do Gemini (opcional)
-        // adicionarMensagem("gemini", "Olá! Posso te ajudar a entender melhor este problema. Pergunte-me sobre os requisitos, exemplos ou a lógica por trás dele!");
         
     } catch (error) {
         console.error("Erro ao carregar problema:", error);
@@ -74,7 +73,7 @@ async function enviarMensagemChat() {
     adicionarMensagem("user", pergunta);
     inputElement.value = ""; // Limpa o input
 
-    // Exibe um indicador de "digitando" (opcional)
+    // Exibe um indicador de "digitando"
     adicionarMensagem("gemini", "...");
 
     try {
@@ -83,7 +82,7 @@ async function enviarMensagemChat() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                problema_id: Number(problemaId), // Envia o ID para contexto
+                problema_id: Number(problemaId),
                 pergunta: pergunta
             })
         });
@@ -108,11 +107,22 @@ async function enviarMensagemChat() {
 }
 
 // --- Lógica de Envio de Solução (Gemini 2 - Code Review) ---
+// ATUALIZADO: Agora envia a complexidade!
 document.getElementById("enviarSolucao").onclick = async () => {
     const texto = editor.getValue();
     const feedbackElement = document.getElementById("feedback");
     
-    feedbackElement.innerText = "Enviando solução para correção... Aguarde."; // Feedback de carregamento
+    // 1. Captura a complexidade escolhida no HTML
+    const complexidadeSelect = document.getElementById("complexidadeInput");
+    const complexidade = complexidadeSelect ? complexidadeSelect.value : null;
+
+    // 2. Validação: Obriga a escolher uma complexidade
+    if (!complexidade) {
+        alert("⚠️ Por favor, selecione a complexidade do seu algoritmo antes de enviar! Isso faz parte da avaliação.");
+        return;
+    }
+    
+    feedbackElement.innerText = "Analisando código e complexidade... Aguarde."; 
 
     try {
         // Endpoint do seu backend para o Gemini do Code Review (Gemini 2)
@@ -121,7 +131,8 @@ document.getElementById("enviarSolucao").onclick = async () => {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 problema_id: Number(problemaId),
-                resposta_usuario: texto
+                resposta_usuario: texto,
+                complexidade_usuario: complexidade // ENVIA O VALOR SELECIONADO
             })
         });
 
@@ -140,7 +151,6 @@ document.getElementById("enviarSolucao").onclick = async () => {
 document.getElementById("mostrarSolucao").onclick = async () => {
     const textoAtual = editor.getValue();
     
-    // ATENÇÃO: Os IDs abaixo dependem do seu HTML estar atualizado!
     const solucaoContainer = document.getElementById("solucaoContainer"); // Novo container pai
     const analiseSolucao = document.getElementById("analiseSolucao"); 
     
@@ -178,7 +188,7 @@ document.getElementById("mostrarSolucao").onclick = async () => {
         `;
         document.getElementById("editorSolucao").style.display = 'block';
 
-        // O Gemini geralmente usa Python ou JavaScript. Assumindo Python com base no seu log.
+        // Define linguagem padrão para Python (comum em PAA)
         const linguagem = "python"; 
 
         // 2. Inicializa ou atualiza o Monaco Editor da solução (código)
@@ -199,7 +209,7 @@ document.getElementById("mostrarSolucao").onclick = async () => {
         
     } catch (error) {
         console.error("Erro ao mostrar solução:", error);
-        // Garante que o container de solução apareça mesmo com erro
+        // Garante que o container de solução apareça mesmo com erro para feedback visual
         solucaoContainer.style.display = "block"; 
         analiseSolucao.innerHTML = `<h3>Erro de Conexão</h3><p>Erro de conexão ao tentar revelar a solução.</p>`;
     }

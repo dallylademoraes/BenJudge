@@ -13,7 +13,6 @@ body {
     background: #f6f8fa;
     color: #222;
     transition: background 0.25s, color 0.25s;
-    /* Garante que o corpo não tenha rolagem extra */
     min-height: 100vh;
 }
 
@@ -32,7 +31,6 @@ body.dark {
     padding: 10px;
 }
 
-/* título */
 h1 {
     text-align: center;
     font-size: 30px;
@@ -109,7 +107,6 @@ body.dark .problema-item:hover {
     background: #1d2430;
 }
 
-/* título do problema */
 .prob-title {
     font-size: 20px;
     font-weight: 600;
@@ -132,7 +129,6 @@ body.dark .problema-item:hover {
 .tag.dy { background: #9c27b0; }
 .tag.dc { background: #0288d1; }
 
-/* dark mode tags */
 body.dark .tag.gulosos { background: #d98200; }
 body.dark .tag.dy { background: #7a1f8e; }
 body.dark .tag.dc { background: #007bb3; }
@@ -164,13 +160,12 @@ body.dark .tag.dc { background: #007bb3; }
     border-color: #eab30855;
 }
 
-.diff.hard {
+.diff.hard, .diff.prova {
     background: #ef444433;
     color: #b91c1c;
     border-color: #ef444455;
 }
 
-/* dark mode */
 body.dark .diff.easy {
     background: #14532d;
     color: #86efac;
@@ -183,17 +178,16 @@ body.dark .diff.medium {
     border-color: #b45309;
 }
 
-body.dark .diff.hard {
+body.dark .diff.hard, body.dark .diff.prova {
     background: #7f1d1d;
     color: #fca5a5;
     border-color: #dc2626;
 }
 
 /* ---------------------------------------------------
-    PROBLEMA + EDITOR (problema.html) - REESTRUTURADO
+    PROBLEMA + EDITOR (LAYOUT PRINCIPAL)
 ---------------------------------------------------*/
 
-/* Fixa a barra superior */
 #topbar {
     padding: 18px 24px;
     display: flex;
@@ -227,7 +221,6 @@ body.dark #topbar {
     background: #d1d5db;
 }
 
-/* Dark Mode */
 body.dark #topbar button {
     background: #21262d;
     color: #c9d1d9;
@@ -237,37 +230,36 @@ body.dark #topbar button:hover {
     background: #2d333b;
 }
 
-/* título do problema */
 #topbar h2 {
     font-size: 22px;
     font-weight: 700;
 }
 
-/* Novo Container Flexível Principal - Garante que Editor e Painel Fiquem Lado a Lado */
 #conteudoPrincipal {
     display: flex;
     gap: 20px;
     height: calc(100vh - 60px); 
     padding: 20px;
-    max-width: 1600px; /* Largura máxima maior para dois painéis */
+    max-width: 1600px; 
     margin: 0 auto;
 }
 
-/* Painel Esquerdo: Descrição, Chat e Feedback (Interativo) */
 #painelInterativo {
     flex: 1; 
     display: flex;
     flex-direction: column;
+    /* Garante que o painel não estoure o tamanho */
+    min-width: 0; 
 }
 
-/* Painel Direito: Editor */
 #painelDireito {
     flex: 1; 
     display: flex;
     flex-direction: column;
+    min-width: 0;
 }
 
-/* ------------------ Componentes do Painel Interativo ------------------ */
+/* ------------------ Descrição e Chat ------------------ */
 
 /* 1. Descrição do Problema */
 #descricaoBox {
@@ -276,10 +268,14 @@ body.dark #topbar button:hover {
     border-radius: 12px;
     margin-bottom: 20px;
     border: 1px solid #ddd;
-    /* Altura flexível, mas com limite máximo */
-    max-height: 40%; 
-    overflow-y: auto;
+    
+    /* CORREÇÃO PARA NÃO ENCOLHER NEM SUMIR */
+    flex-shrink: 0;       
+    min-height: 200px;    
+    max-height: 35%;      
+    overflow-y: auto;     
 }
+
 #descricaoBox h3 { margin-bottom: 10px; color: #0066ff; }
 body.dark #descricaoBox {
     background: #161b22;
@@ -294,9 +290,12 @@ body.dark #descricaoBox {
     padding: 15px;
     display: flex;
     flex-direction: column;
-    flex-grow: 1; /* Cresce para ocupar o espaço restante */
+    
+    /* Chat ocupa o espaço restante, mas respeita os outros */
+    flex-grow: 1; 
     min-height: 250px;
     margin-bottom: 20px;
+    overflow: hidden; /* Impede overflow externo */
 }
 #chatBox h3 { margin-bottom: 15px; color: #ff9800; }
 body.dark #chatBox {
@@ -306,13 +305,13 @@ body.dark #chatBox {
 
 #mensagensChat {
     flex-grow: 1;
-    overflow-y: auto; /* Rolagem apenas nas mensagens */
+    overflow-y: auto; 
     margin-bottom: 15px;
-    display: flex; /* Para alinhar mensagens */
+    display: flex; 
     flex-direction: column;
+    padding-right: 5px;
 }
 
-/* Estilo das mensagens */
 .chat-message {
     padding: 8px 12px;
     border-radius: 18px;
@@ -321,24 +320,24 @@ body.dark #chatBox {
     line-height: 1.4;
 }
 .user-message {
-    background: #eef4ff; /* Azul claro */
+    background: #eef4ff; 
     color: #1a428a;
     margin-left: auto;
-    border-bottom-right-radius: 4px; /* Ponta do balão */
+    border-bottom-right-radius: 4px;
 }
 .gemini-message {
-    background: #f0f0f0; /* Cinza claro */
+    background: #f0f0f0; 
     color: #333;
     margin-right: auto;
-    border-bottom-left-radius: 4px; /* Ponta do balão */
+    border-bottom-left-radius: 4px;
 }
 body.dark .user-message { background: #1c2638; color: #bcd0ff; }
 body.dark .gemini-message { background: #2d333b; color: #c9d1d9; }
 
-/* Input e Botão do Chat */
 #chatInputArea {
     display: flex;
     gap: 10px;
+    flex-shrink: 0; /* Impede que a área de input suma */
 }
 #chatInput {
     flex-grow: 1;
@@ -363,27 +362,74 @@ body.dark #chatInput {
 }
 .chat-btn:hover { background: #0052cc; }
 
-/* ------------------ Botões de Ação e Feedback (Parte 3) ------------------ */
+/* ------------------ Seletor de Complexidade (COMPACTO) ------------------ */
+
+#complexidadeContainer {
+    /* Layout Horizontal (Compacto) */
+    display: flex;
+    align-items: center; /* Centraliza verticalmente */
+    justify-content: space-between;
+    gap: 15px;
+    
+    background: white;
+    padding: 10px 15px; /* Padding reduzido */
+    border-radius: 12px;
+    border: 1px solid #ddd;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+body.dark #complexidadeContainer {
+    background: #161b22;
+    border: 1px solid #30363d;
+}
+
+#complexidadeContainer label {
+    margin: 0; /* Remove margem para ficar alinhado */
+    font-weight: 600;
+    white-space: nowrap; /* Impede que o texto quebre linha */
+    font-size: 14px;
+}
+
+#complexidadeInput {
+    /* O dropdown ocupa o espaço restante */
+    flex-grow: 1;
+    width: auto;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background-color: #f9fafb;
+    font-size: 14px;
+    cursor: pointer;
+    margin: 0;
+}
+
+body.dark #complexidadeInput {
+    background-color: #0d1117;
+    border-color: #30363d;
+    color: #c9d1d9;
+}
+
+/* ------------------ Botões de Ação e Feedback ------------------ */
 
 #solucaoFeedbackArea {
     margin-top: auto;
+    flex-shrink: 0; /* Garante que esta área nunca encolha */
 }
 
-/* Botões de Envio e Solução Lado a Lado */
 #botoesAcao {
     display: flex;
-    gap: 15px; 
-    margin-bottom: 18px;
+    gap: 10px; 
+    margin-bottom: 15px;
 }
 
-/* Estilo Base do Botão de Solução/Envio (CORRIGIDO: Removido width: 100%) */
 .solucao-btn {
     display: block; 
-    width: auto; /* Permite que o flexbox controle a largura */
-    flex-grow: 1; /* Distribui o espaço entre os botões */
-    padding: 12px 22px;
-    font-size: 16px;
-    background: #10b981; /* Verde (Enviar Solução) */
+    width: auto; 
+    flex-grow: 1; 
+    padding: 10px 15px;
+    font-size: 15px;
+    background: #10b981; 
     color: white;
     border-radius: 8px;
     border: none;
@@ -392,14 +438,12 @@ body.dark #chatInput {
     font-weight: 600;
 }
 
-/* Cor hover para Enviar Solução */
 .solucao-btn:hover { background: #059669; }
 body.dark .solucao-btn { background: #059669; }
 body.dark .solucao-btn:hover { background: #047857; }
 
-/* Estilo alternativo para o botão 'Mostrar Solução' */
 .btn-solucao-alt {
-    background: #3b82f6; /* Azul */
+    background: #3b82f6; 
 }
 .btn-solucao-alt:hover {
     background: #2563eb;
@@ -411,18 +455,17 @@ body.dark .btn-solucao-alt:hover {
     background: #3b82f6;
 }
 
-/* Feedback (Gemini 2) */
 #feedback {
     white-space: pre-wrap;
     background: #fef2f2; 
-    padding: 16px;
+    padding: 12px;
     border-radius: 12px;
     border: 1px solid #fecaca;
-    margin-top: 12px;
     font-family: "JetBrains Mono", monospace;
-    line-height: 1.5;
-    min-height: 80px; 
-    margin-bottom: 18px; /* Adiciona margem abaixo do feedback para separar da Solução */
+    line-height: 1.4;
+    font-size: 13px;
+    min-height: 60px; 
+    margin-bottom: 10px;
 }
 
 body.dark #feedback {
@@ -434,18 +477,19 @@ body.dark #feedback {
 /* ------------------ Solução Detalhada (Gemini 3) ------------------ */
 
 #solucaoContainer {
-    margin-top: 10px; /* Pequena margem acima do container */
+    margin-top: 10px;
 }
 
-/* Área de Análise (Texto simples, substituindo #solucaoDetalhada) */
 #analiseSolucao {
-    background: #fffbe6; /* Amarelo claro/creme para a análise */
-    padding: 18px;
+    background: #fffbe6; 
+    padding: 15px;
     border-radius: 12px;
     border: 1px solid #fde047;
-    margin-bottom: 15px; /* Separação do editor de código */
+    margin-bottom: 15px;
+    font-size: 14px;
+    line-height: 1.5;
 }
-#analiseSolucao h3 { color: #8a6800; } /* Cor do título para a análise */
+#analiseSolucao h3 { color: #8a6800; margin-bottom: 8px; font-size: 16px;}
 
 body.dark #analiseSolucao {
     background: #30240d;
@@ -453,10 +497,8 @@ body.dark #analiseSolucao {
     color: #c9d1d9;
 }
 
-
-/* Editor de Solução (Monaco Editor 2) */
 #editorSolucao {
-    height: 400px; /* A altura é definida no HTML inline, mas garantimos aqui */
+    height: 350px; 
     border-radius: 12px;
     overflow: hidden;
     border: 1px solid #ddd;
@@ -465,16 +507,219 @@ body.dark #editorSolucao {
     border: 1px solid #30363d;
 }
 
-
-/* ------------------ Editor de Código (Principal) ------------------ */
+/* ------------------ Editor Principal ------------------ */
 #editor {
     flex-grow: 1; 
-    min-height: 400px; 
+    height: 100%;
     border-radius: 12px;
     overflow: hidden;
-    margin-bottom: 0; 
     border: 1px solid #ddd;
 }
 body.dark #editor {
     border: 1px solid #30363d;
+}
+/* ---------------------------------------------------
+   TOAST NOTIFICATION (Novidades)
+---------------------------------------------------*/
+
+.toast-container {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background: white;
+    border-left: 5px solid #8b5cf6; /* Roxo destaque */
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    z-index: 9999;
+    
+    /* Estado inicial: Escondido e deslocado */
+    opacity: 0;
+    transform: translateX(50px);
+    visibility: hidden;
+    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55); /* Efeito elástico */
+}
+
+/* Classe para mostrar o toast */
+.toast-container.show {
+    opacity: 1;
+    transform: translateX(0);
+    visibility: visible;
+}
+
+.toast-icon {
+    font-size: 24px;
+    color: #8b5cf6;
+}
+
+.toast-content strong {
+    display: block;
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.toast-content p {
+    font-size: 14px;
+    color: #666;
+    margin: 0;
+}
+
+.toast-content .highlight {
+    color: #8b5cf6;
+    font-weight: 700;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    color: #999;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 5px;
+    transition: 0.2s;
+}
+
+.toast-close:hover {
+    color: #333;
+}
+
+/* Dark Mode para o Toast */
+body.dark .toast-container {
+    background: #1f2329;
+    border-left-color: #a78bfa;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+
+body.dark .toast-content strong { color: #e5e7eb; }
+body.dark .toast-content p { color: #9ca3af; }
+body.dark .toast-icon { color: #a78bfa; }
+body.dark .toast-content .highlight { color: #a78bfa; }
+
+/* ---------------------------------------------------
+   MODAL DE BOAS-VINDAS (Overlay)
+---------------------------------------------------*/
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6); /* Fundo escuro transparente */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000; /* Fica acima de tudo */
+    
+    /* Estado inicial (escondido) */
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(4px); /* Efeito de desfoque no fundo */
+}
+
+.modal-overlay.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background: white;
+    width: 90%;
+    max-width: 500px;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+    transform: translateY(20px);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    text-align: left;
+}
+
+.modal-overlay.show .modal-content {
+    transform: translateY(0);
+}
+
+/* Dark Mode Modal */
+body.dark .modal-content {
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #c9d1d9;
+}
+
+/* Tipografia do Modal */
+.modal-header h2 {
+    font-size: 24px;
+    color: #111;
+    margin-bottom: 15px;
+    text-align: center;
+}
+body.dark .modal-header h2 { color: #fff; }
+
+.modal-body p {
+    font-size: 15px;
+    line-height: 1.6;
+    color: #555;
+    margin-bottom: 20px;
+    text-align: center;
+}
+body.dark .modal-body p { color: #8b949e; }
+
+/* Lista de Features */
+.feature-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 25px 0;
+}
+
+.feature-list li {
+    display: flex;
+    align-items: flex-start;
+    gap: 15px;
+    margin-bottom: 15px;
+    background: #f3f4f6;
+    padding: 12px;
+    border-radius: 10px;
+}
+body.dark .feature-list li { background: #21262d; }
+
+.feature-list .icon {
+    font-size: 24px;
+}
+
+.feature-list strong {
+    display: block;
+    color: #333;
+    font-size: 15px;
+    margin-bottom: 2px;
+}
+body.dark .feature-list strong { color: #e5e7eb; }
+
+.feature-list p {
+    margin: 0;
+    font-size: 13px;
+    color: #666;
+    text-align: left;
+}
+
+/* Botão de Começar */
+.start-btn {
+    width: 100%;
+    padding: 14px;
+    background: #2563eb; /* Azul vibrante */
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.start-btn:hover {
+    background: #1d4ed8;
+    transform: translateY(-2px);
 }
