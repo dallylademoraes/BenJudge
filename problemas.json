@@ -346,5 +346,66 @@
     "exemplo_entrada": {"valor": 4, "moedas": [1, 2, 3]},
     "exemplo_saida": 4,
     "complexidade": "O(n*valor)"
-  }
+  },
+  {
+  "id": 38,
+  "titulo": "Sequenciamento de tarefas com prazos e lucros",
+  "categoria": ["gulosos"],
+  "dificuldade": "prova",
+  "descricao": "Dado um conjunto de tarefas, cada uma com um prazo máximo para execução e um lucro obtido se concluída antes do prazo. Cada tarefa ocupa 1 unidade de tempo. O objetivo é selecionar o subconjunto de tarefas que maximiza o lucro total, usando a estratégia gulosa de ordenar por lucro decrescente e agendar a mais lucrativa possível dentro de seu prazo.",
+  "exemplo_entrada": [
+    {"id": "a", "prazo": 4, "lucro": 20},
+    {"id": "b", "prazo": 1, "lucro": 10},
+    {"id": "c", "prazo": 1, "lucro": 40},
+    {"id": "d", "prazo": 1, "lucro": 30}
+  ],
+  "exemplo_saida": ["c", "a"],
+  "complexidade": "O(n log n)"
+},
+{
+  "id": 39,
+  "titulo": "Árvore Geradora Mínima – Algoritmo de Prim",
+  "categoria": ["grafos"],
+  "dificuldade": "prova",
+  "descricao": "Dado um grafo ponderado e conectado, encontre sua Árvore Geradora Mínima usando o algoritmo de Prim. O algoritmo começa em um vértice inicial e expande a árvore sempre escolhendo a aresta de menor custo que conecta o conjunto de visitados ao conjunto de não visitados.",
+  "exemplo_entrada": {
+    "vertices": ["a","b","c","d"],
+    "arestas": [
+      {"u":"a","v":"b","peso":4},
+      {"u":"a","v":"c","peso":3},
+      {"u":"b","v":"c","peso":1},
+      {"u":"b","v":"d","peso":2},
+      {"u":"c","v":"d","peso":4}
+    ]
+  },
+  "exemplo_saida": [
+    {"u":"b","v":"c","peso":1},
+    {"u":"b","v":"d","peso":2},
+    {"u":"a","v":"c","peso":3}
+  ],
+  "complexidade": "O(n²)"
+},
+{
+  "id": 40,
+  "titulo": "Árvore Geradora Mínima – Algoritmo de Kruskal",
+  "categoria": ["grafos"],
+  "dificuldade": "prova",
+  "descricao": "Encontre a Árvore Geradora Mínima de um grafo utilizando o algoritmo de Kruskal. Ordene as arestas em ordem crescente de peso e selecione a próxima aresta mais leve que não forme ciclo, usando Union-Find para detectar ciclos.",
+  "exemplo_entrada": {
+    "vertices": ["a","b","c","d"],
+    "arestas": [
+      {"u":"a","v":"b","peso":4},
+      {"u":"a","v":"c","peso":3},
+      {"u":"b","v":"c","peso":1},
+      {"u":"b","v":"d","peso":2},
+      {"u":"c","v":"d","peso":4}
+    ]
+  },
+  "exemplo_saida": [
+    {"u":"b","v":"c","peso":1},
+    {"u":"b","v":"d","peso":2},
+    {"u":"a","v":"c","peso":3}
+  ],
+  "complexidade": "O(m log m)"
+}
 ]
